@@ -1,0 +1,12 @@
+{
+  "license": "MIT",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.34",
+    "serverless-plugin-typescript": "^1.1.9",
+    "typescript": "^3.7.2"
+  },
+  "dependencies": {
+    "aws-lambda": "^0.1.2",
+    "aws-sdk": "^2.566.0"
+  }
+}

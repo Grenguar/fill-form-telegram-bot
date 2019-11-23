@@ -1,0 +1,25 @@
+{
+  "lintOptions": {
+    "typeCheck": true,
+    "project": true
+  },
+  "rulesDirectory": ["node_modules/tslint-microsoft-contrib"],
+  "extends": ["tslint:recommended", "tslint-config-standard", "tslint-config-prettier"],
+  "rules": {
+    "no-empty-interface": true,
+    "adjacent-overload-signatures": true,
+    "no-duplicate-variable": true,
+    "triple-equals": true,
+    "prefer-template": true,
+    "ordered-imports": false,
+    "object-literal-sort-keys": false,
+    "member-ordering": false,
+    "no-console": [false],
+    "await-promise": true,
+    "deprecation": true,
+    "no-floating-promises": true,
+    "no-unnecessary-qualifier": true,
+    "strict-type-predicates": true,
+    "max-line-length": [true, 120]
+  }
+}

@@ -1,0 +1,18 @@
+service: fuel-api-serverless-ts
+
+plugins:
+  - serverless-plugin-typescript
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  region: eu-west-1
+  logRetentionInDays: 3
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: hello
+          method: get
