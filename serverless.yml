@@ -1,4 +1,4 @@
-service: fuel-api-serverless-ts
+service: telegram-form-bot-serverless
 
 plugins:
   - serverless-plugin-typescript
@@ -6,13 +6,58 @@ plugins:
 provider:
   name: aws
   runtime: nodejs10.x
-  region: eu-west-1
+  region: eu-central-1
   logRetentionInDays: 3
+  environment:
+    # TO: ${file(./env.json):TO, env:TO}
+    # FROM: ${file(./env.json):FROM, env:FROM}
+    BOT_TOKEN: ${file(./env.json):BOT_TOKEN, env:BOT_TOKEN}
+    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "ses:*"
+      Resource:
+        - "*"
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
 
 functions:
-  hello:
-    handler: handler.hello
+  send:
+    handler: handler.sendAnswer
     events:
       - http:
-          path: hello
-          method: get
+          path: send
+          method: post
+
+resources:
+  Resources:
+    TodosDynamoDbTable:
+      Type: "AWS::DynamoDB::Table"
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+
+package:
+  exclude:
+    - src/tests/**
+    - jest.config.js
+    - tsconfig.json
+    - tslint.json
+    - env*.json
+    - .travis.yml
+    - .prettierrc
