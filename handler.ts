@@ -1,5 +1,7 @@
 import { Handler, Context, Callback } from "aws-lambda";
 import Telegraf from "telegraf";
+import Questions from "./src/questions";
+import DynamoDbConnector from "./src/connector/dynamoDbConnector";
 
 interface HelloResponse {
   statusCode: number;
@@ -7,20 +9,31 @@ interface HelloResponse {
 }
 
 const bot = new Telegraf(process.env.BOT_TOKEN!);
+const questions = new Questions().getQuestions();
+const dbConnector = new DynamoDbConnector(process.env.DYNAMODB_TABLE!);
 
 const sendAnswer: Handler = async (event: any, context: Context, callback: Callback) => {
   const body = JSON.parse(event.body);
   const userInput = body.message.text;
   const chatId = body.message.chat.id;
-
+  const chatIdString = chatId.toString();
+  console.log(`CHATID: ${chatId}`);
   if (body.message.document) {
     const documentData = <DocumentData>body.message.document;
     const answerForPdfCheck = answerIfPdfFormat(documentData);
     copyFileToS3(documentData);
     bot.telegram.sendMessage(chatId, answerForPdfCheck);
   } else {
-    bot.on("text", ctx => ctx.reply(`You said: ${userInput} and your chatId: ${chatId}`));
-    console.log("Request: " + JSON.stringify(body));
+    bot.on("text", async ctx => {
+      const curAnswer = await dbConnector.getCurrentAnswer(chatIdString);
+      if (userInput === "/start" && curAnswer === 0) {
+        ctx.telegram.sendMessage(chatId, questions[1].text);
+        ctx.telegram.sendMessage(chatId, questions[0].text);
+        dbConnector.createForm(chatIdString);
+      } else {
+        ctx.telegram.sendMessage(chatId, `Curr number: ${curAnswer}`);
+      }
+    });
     await bot.handleUpdate(body);
   }
 
