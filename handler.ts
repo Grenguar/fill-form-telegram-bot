@@ -9,31 +9,37 @@ interface HelloResponse {
 }
 
 const bot = new Telegraf(process.env.BOT_TOKEN!);
-const questions = new Questions().getQuestions();
+const questions = new Questions().questions;
 const dbConnector = new DynamoDbConnector(process.env.DYNAMODB_TABLE!);
+const finalAnswer = "Спасибо! Ваши ответы приняты!";
 
 const sendAnswer: Handler = async (event: any, context: Context, callback: Callback) => {
   const body = JSON.parse(event.body);
   const userInput = body.message.text;
   const chatId = body.message.chat.id;
   const chatIdString = chatId.toString();
-  console.log(`CHATID: ${chatId}`);
+  let curAnswer = await dbConnector.getCurrentAnswer(chatIdString);
+
   if (body.message.document) {
     const documentData = <DocumentData>body.message.document;
     const answerForPdfCheck = answerIfPdfFormat(documentData);
     copyFileToS3(documentData);
     bot.telegram.sendMessage(chatId, answerForPdfCheck);
+    if (ifPdfCheck(documentData)) {
+      await dbConnector.increaseCounter(chatIdString, curAnswer);
+      bot.telegram.sendMessage(chatId, finalAnswer);
+    }
   } else {
-    bot.on("text", async ctx => {
-      const curAnswer = await dbConnector.getCurrentAnswer(chatIdString);
-      if (userInput === "/start" && curAnswer === 0) {
-        ctx.telegram.sendMessage(chatId, questions[1].text);
-        ctx.telegram.sendMessage(chatId, questions[0].text);
-        dbConnector.createForm(chatIdString);
-      } else {
-        ctx.telegram.sendMessage(chatId, `Curr number: ${curAnswer}`);
-      }
-    });
+    if (userInput === "/start" && curAnswer === 0) {
+      // bot.telegram.sendMessage(chatId, );
+      dbConnector.createForm(chatIdString);
+      bot.telegram.sendMessage(chatId, `${questions[0].text}\n\n${questions[1].text}`);
+    } else if (curAnswer >= questions.length) {
+      bot.telegram.sendMessage(chatId, "Вы уже ответили на все наши вопросы. Спасибо еще раз!");
+    } else {
+      await dbConnector.updateAnswer(chatIdString, curAnswer, userInput);
+      bot.telegram.sendMessage(chatId, questions[++curAnswer].text);
+    }
     await bot.handleUpdate(body);
   }
 
@@ -45,12 +51,12 @@ const sendAnswer: Handler = async (event: any, context: Context, callback: Callb
   callback(null, response);
 };
 
+const ifPdfCheck = (documentData: DocumentData): boolean => {
+  return documentData.mime_type === "application/pdf";
+};
+
 const answerIfPdfFormat = (documentData: DocumentData): string => {
-  if (documentData.mime_type === "application/pdf") {
-    return `File accepted`;
-  } else {
-    return `File is not accepted! Please send file in PDF format`;
-  }
+  return ifPdfCheck(documentData) ? `File accepted` : `File is not accepted! Please send file in PDF format`;
 };
 
 const copyFileToS3 = (documentData: DocumentData): void => {
