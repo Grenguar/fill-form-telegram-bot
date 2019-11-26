@@ -12,6 +12,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN!);
 const questions = new Questions().questions;
 const dbConnector = new DynamoDbConnector(process.env.DYNAMODB_TABLE!);
 const finalAnswer = "Спасибо! Ваши ответы приняты!";
+const afterFinalAnswer = "Вы уже ответили на все наши вопросы. Спасибо еще раз!";
 
 const sendAnswer: Handler = async (event: any, context: Context, callback: Callback) => {
   const body = JSON.parse(event.body);
@@ -35,7 +36,7 @@ const sendAnswer: Handler = async (event: any, context: Context, callback: Callb
       dbConnector.createForm(chatIdString);
       bot.telegram.sendMessage(chatId, `${questions[0].text}\n\n${questions[1].text}`);
     } else if (curAnswer >= questions.length) {
-      bot.telegram.sendMessage(chatId, "Вы уже ответили на все наши вопросы. Спасибо еще раз!");
+      bot.telegram.sendMessage(chatId, afterFinalAnswer);
     } else {
       await dbConnector.updateAnswer(chatIdString, curAnswer, userInput);
       bot.telegram.sendMessage(chatId, questions[++curAnswer].text);
