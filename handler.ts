@@ -2,6 +2,8 @@ import { Handler, Context, Callback } from "aws-lambda";
 import Telegraf from "telegraf";
 import Questions from "./src/questions";
 import DynamoDbConnector from "./src/connector/dynamoDbConnector";
+import DocumentData from "./src/model/documentData";
+import FileHandler from "./src/fileHandler";
 
 interface HelloResponse {
   statusCode: number;
@@ -24,7 +26,8 @@ const sendAnswer: Handler = async (event: any, context: Context, callback: Callb
   if (body.message.document) {
     const documentData = <DocumentData>body.message.document;
     const answerForPdfCheck = answerIfPdfFormat(documentData);
-    copyFileToS3(documentData);
+    const fileHandler = new FileHandler(documentData);
+    fileHandler.copyFileToS3();
     bot.telegram.sendMessage(chatId, answerForPdfCheck);
     if (ifPdfCheck(documentData)) {
       await dbConnector.increaseCounter(chatIdString, curAnswer);
@@ -32,7 +35,6 @@ const sendAnswer: Handler = async (event: any, context: Context, callback: Callb
     }
   } else {
     if (userInput === "/start" && curAnswer === 0) {
-      // bot.telegram.sendMessage(chatId, );
       dbConnector.createForm(chatIdString);
       bot.telegram.sendMessage(chatId, `${questions[0].text}\n\n${questions[1].text}`);
     } else if (curAnswer >= questions.length) {
@@ -58,20 +60,6 @@ const ifPdfCheck = (documentData: DocumentData): boolean => {
 
 const answerIfPdfFormat = (documentData: DocumentData): string => {
   return ifPdfCheck(documentData) ? `File accepted` : `File is not accepted! Please send file in PDF format`;
-};
-
-const copyFileToS3 = (documentData: DocumentData): void => {
-  //https://api.telegram.org/bot<bot_token>/getFile?file_id=the_file_id
-  //https://api.telegram.org/bot<TOKEN>/getFile?file_id=FILE_ID
-  //Response: {"ok":true,"result":{"file_id":"the_file_id","file_size":50729,"file_path":"PATH"}}
-  //Download: https://api.telegram.org/file/bot<TOKEN>/PATH
-};
-
-type DocumentData = {
-  file_name: string;
-  mime_type: string;
-  file_id: string;
-  file_size: number;
 };
 
 export { sendAnswer };

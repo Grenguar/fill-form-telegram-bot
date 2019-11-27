@@ -1,23 +1,23 @@
 {
-    "compilerOptions": {
-      "target": "es6",
-      "module": "commonjs",
-      "lib": ["es6", "dom"],
-      "sourceMap": true,
-      "allowJs": true,
-      "removeComments": true,
-      "moduleResolution": "node",
-      "noImplicitAny": true,
-      "noImplicitThis": true,
-      "strictNullChecks": true,
-      "strict": true,
-      "noUnusedLocals": true,
-      "noImplicitReturns": true,
-      "preserveConstEnums": true,
-      "suppressImplicitAnyIndexErrors": true,
-      "forceConsistentCasingInFileNames": true,
-      "resolveJsonModule": true,
-      "esModuleInterop": true
-    },
-    "exclude": ["node_modules", ".build"]
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "lib": ["es6", "dom"],
+    "sourceMap": true,
+    "allowJs": true,
+    "removeComments": true,
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+    "preserveConstEnums": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true
+  },
+  "exclude": ["node_modules", ".build"]
 }
