@@ -5,16 +5,13 @@ import DynamoDbConnector from "./src/connector/dynamoDbConnector";
 import DocumentData from "./src/model/documentData";
 import FileHandler from "./src/fileHandler";
 
-interface HelloResponse {
-  statusCode: number;
-  body: string;
-}
-
 const bot = new Telegraf(process.env.BOT_TOKEN!);
 const questions = new Questions().questions;
 const dbConnector = new DynamoDbConnector(process.env.DYNAMODB_TABLE!);
 const finalAnswer = "Спасибо! Ваши ответы приняты!";
 const afterFinalAnswer = "Вы уже ответили на все наши вопросы. Спасибо еще раз!";
+const fileAccepted = "Файл принят.";
+const fileNotAccepted = `Файл не принят. Проверьте расширение. Я принимаю: pdf, doc, docx, odt, txt`;
 
 const sendAnswer: Handler = async (event: any, context: Context, callback: Callback) => {
   const body = JSON.parse(event.body);
@@ -25,12 +22,13 @@ const sendAnswer: Handler = async (event: any, context: Context, callback: Callb
 
   if (body.message.document) {
     const documentData = <DocumentData>body.message.document;
-    const answerForPdfCheck = answerIfPdfFormat(documentData);
+    console.log(documentData);
+    const answerForPdfCheck = answerAfterFile(documentData);
     const fileHandler = new FileHandler(documentData);
-    fileHandler.copyFileToS3();
     bot.telegram.sendMessage(chatId, answerForPdfCheck);
-    if (ifPdfCheck(documentData)) {
+    if (isSuitableDoc(documentData)) {
       await dbConnector.increaseCounter(chatIdString, curAnswer);
+      fileHandler.copyFileToS3(true);
       bot.telegram.sendMessage(chatId, finalAnswer);
     }
   } else {
@@ -46,20 +44,27 @@ const sendAnswer: Handler = async (event: any, context: Context, callback: Callb
     await bot.handleUpdate(body);
   }
 
-  const response: HelloResponse = {
+  callback(null, {
     statusCode: 200,
     body: "ok"
-  };
-
-  callback(null, response);
+  });
 };
 
-const ifPdfCheck = (documentData: DocumentData): boolean => {
-  return documentData.mime_type === "application/pdf";
+const isSuitableDoc = (documentData: DocumentData): boolean => {
+  const mimeType = documentData.mime_type;
+  const isAllowedSize = documentData.file_size <= 15000000;
+  return (
+    isAllowedSize &&
+    (mimeType === "application/pdf" ||
+      mimeType === "application/msword" ||
+      mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      mimeType === "application/vnd.oasis.opendocument.text" ||
+      mimeType === "text/plain")
+  );
 };
 
-const answerIfPdfFormat = (documentData: DocumentData): string => {
-  return ifPdfCheck(documentData) ? `File accepted` : `File is not accepted! Please send file in PDF format`;
+const answerAfterFile = (documentData: DocumentData): string => {
+  return isSuitableDoc(documentData) ? fileAccepted : fileNotAccepted;
 };
 
 export { sendAnswer };
