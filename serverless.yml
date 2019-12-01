@@ -9,6 +9,8 @@ provider:
   region: eu-central-1
   logRetentionInDays: 3
   environment:
+    TO: ${file(./env.json):TO, env:TO}
+    FROM: ${file(./env.json):FROM, env:FROM}
     BOT_TOKEN: ${file(./env.json):BOT_TOKEN, env:BOT_TOKEN}
     DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
     BUCKET: ${file(./env.json):BUCKET_NAME, env:BUCKET_NAME}
@@ -68,3 +70,4 @@ package:
     - env*.json
     - .travis.yml
     - .prettierrc
+    - node_modules/aws-sdk/**

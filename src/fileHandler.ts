@@ -9,7 +9,7 @@ export default class FileHandler {
     this.documentData = documentData;
   }
 
-  public async copyFileToS3(sendLetter?: boolean): Promise<void> {
+  public async copyFileToS3(sendLetter?: boolean, htmlText?: string): Promise<void> {
     const botToken = process.env.BOT_TOKEN!;
     const fileId = this.documentData.file_id;
     const filename = this.documentData.file_name;
@@ -25,19 +25,20 @@ export default class FileHandler {
           Key: filename,
           Body: buffer
         }).promise();
-        if (sendLetter) {
-          this.mailSender(process.env.TO!, process.env.FROM!, filename, buffer);
+        if (sendLetter && htmlText) {
+          console.log("Sending letter");
+          this.mailSender(process.env.TO!, process.env.FROM!, filename, buffer, htmlText);
         }
       })
       .catch(e => console.log(e));
   }
 
-  public async mailSender(to: string, from: string, filename: string, buffer: Buffer): Promise<void> {
+  public async mailSender(to: string, from: string, filename: string, buffer: Buffer, htmlText: string): Promise<void> {
     const ses = new AWS.SES();
     const mailOptions = {
       from,
-      subject: "This is an email sent from a Lambda function!",
-      html: `<p>You got a contact message from: Geekexport</p>`,
+      subject: "New lead",
+      html: `<h1>Lead Details</h1>${htmlText}`,
       to,
       attachments: [
         {
@@ -51,7 +52,7 @@ export default class FileHandler {
     });
     transporter.sendMail(mailOptions, function(err, info) {
       if (err) {
-        console.log("Error sending email");
+        console.log(err);
       } else {
         console.log("Email sent successfully");
       }

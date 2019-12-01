@@ -22,7 +22,7 @@ export default class DynamoDbConnector {
   public createForm(id: string): void {
     const emptyForm: FormAnswer = {
       id,
-      currentAnswer: 1
+      currentAnswer: 0
     };
     const params = {
       TableName: this.tableName,
@@ -37,6 +37,26 @@ export default class DynamoDbConnector {
         return;
       }
     });
+  }
+  public async getItem(id: string): Promise<FormAnswer> {
+    const params = {
+      TableName: this.tableName,
+      Key: {
+        id: id
+      }
+    };
+    return this._client
+      .get(params, (error: AWSError, data: GetItemOutput) => {
+        if (error) {
+          console.error(error);
+          return;
+        }
+        return data.Item;
+      })
+      .promise()
+      .then(res => {
+        return res.Item as FormAnswer;
+      });
   }
 
   public async getCurrentAnswer(id: string): Promise<number> {
