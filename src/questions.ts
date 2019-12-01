@@ -2,11 +2,11 @@ import FormQuestion from "./model/formQuestion";
 
 export default class Questions {
   private _questions: FormQuestion[];
-  private commonErrorString = "К сожалению, произошла ошибка!";
+  private commonErrorString = "К сожалению, произошла ошибка.";
   private _welcomeWords = "Привет! Меня зовут Иван Гиков. Я помогу тебе оставить заявку на консультацию в Гик Экспорт.";
-  private _finalWords = "Спасибо! Ваши ответы приняты!";
+  private _finalWords = "Спасибо! Ваши ответы приняты.";
   private _afterFinalWords = "Вы уже ответили на все наши вопросы. Спасибо еще раз!";
-  private _typeError = "Извините, но такой тип файлов не поддерживается!";
+  private _typeError = "Извините, но такой тип файлов не поддерживается.";
 
   constructor() {
     this._questions = [
@@ -29,7 +29,7 @@ export default class Questions {
       {
         shortName: ":p",
         name: "phone",
-        text: "Какой у Вас номер телефон?",
+        text: "Какой у Вас номер телефона?",
         type: "phone",
         num: 2,
         error: `${this.commonErrorString} Номер телефона должен содержать только цифры и +`
