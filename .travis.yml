@@ -9,5 +9,5 @@ script:
   - yarn deploy -v --stage prod > output.txt
   - "ENDPOINT=$(grep 'ServiceEndpoint:' output.txt | sed 's/^.*: //')"
   - echo $ENDPOINT
-  - curl -S https://api.telegram.org/bot$BOT_TOKEN/setWebhook?url=$ENDPOINT
+  - curl -S https://api.telegram.org/bot$BOT_TOKEN/setWebhook?url=$ENDPOINT/send
   - echo success!
