@@ -3,6 +3,7 @@ import BotLogic from "./src/botLogic";
 
 const sendAnswer: Handler = async (event: any, context: Context, callback: Callback) => {
   const body = JSON.parse(event.body);
+  console.log(body);
   const botLogic = new BotLogic();
   await botLogic.activate(body);
 

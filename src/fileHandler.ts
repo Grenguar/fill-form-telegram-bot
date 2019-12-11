@@ -26,7 +26,6 @@ export default class FileHandler {
           Body: buffer
         }).promise();
         if (sendLetter && htmlText) {
-          console.log("Sending letter");
           this.mailSender(process.env.TO!, process.env.FROM!, filename, buffer, htmlText);
         }
       })
@@ -52,9 +51,7 @@ export default class FileHandler {
     });
     transporter.sendMail(mailOptions, function(err, info) {
       if (err) {
-        console.log(err);
-      } else {
-        console.log("Email sent successfully");
+        console.error(err);
       }
     });
   }

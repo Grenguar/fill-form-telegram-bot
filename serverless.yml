@@ -10,7 +10,8 @@ provider:
   logRetentionInDays: 3
   environment:
     TO: ${file(./env.json):TO, env:TO}
-    FROM: ${file(./env.json):FROM, env:FROM}
+    FROM: ${file(./env.json):FROM, env:FROM},
+    LANG: ${file(./env.json):LANG, env:LANG}
     BOT_TOKEN: ${file(./env.json):BOT_TOKEN, env:BOT_TOKEN}
     DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
     BUCKET: ${file(./env.json):BUCKET_NAME, env:BUCKET_NAME}

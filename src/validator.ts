@@ -21,6 +21,9 @@ export default class Validator {
   public validateWrittenDocument(documentData: DocumentData): boolean {
     const mimeType = documentData.mime_type;
     const isAllowedSize = documentData.file_size <= 15000000;
+    if (documentData.mime_type.indexOf("image") > -1) {
+      return false;
+    }
     return (
       isAllowedSize &&
       (mimeType === "application/pdf" ||

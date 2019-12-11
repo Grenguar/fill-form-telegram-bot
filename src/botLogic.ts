@@ -7,9 +7,10 @@ import Validator from "./validator";
 import FormQuestion from "./model/formQuestion";
 import FormAnswer from "./model/formAnswer";
 
+const LANGUAGE = process.env.LANG ? process.env.LANG : "en";
+console.log(LANGUAGE);
+
 export default class BotLogic {
-  fileAccepted = "Файл принят.";
-  fileNotAccepted = `Файл не принят. Проверьте расширение. Я принимаю: pdf, doc, docx, odt, txt`;
   bot: Telegraf<ContextMessageUpdate>;
   dbConnector: DynamoDbConnector;
   validator: Validator;
@@ -30,12 +31,12 @@ export default class BotLogic {
     let currIndexAnswer = await this.dbConnector.getCurrentAnswer(chatIdString);
     const currQuestion: FormQuestion = formQuestions[currIndexAnswer];
     if (currIndexAnswer >= formQuestions.length) {
-      this.bot.telegram.sendMessage(chatId, this.questions.afterFinalWords);
+      this.bot.telegram.sendMessage(chatId, this.questions.afterFinalWords[LANGUAGE]);
       return;
     }
 
     if (body.message.photo || body.message.location) {
-      this.bot.telegram.sendMessage(chatId, this.questions.typeError);
+      this.bot.telegram.sendMessage(chatId, this.questions.typeError[LANGUAGE]);
       return;
     }
 
@@ -44,7 +45,7 @@ export default class BotLogic {
       if (this.validator.validateWrittenDocument(documentData)) {
         this.bot.telegram.sendMessage(
           chatIdString,
-          currQuestion.success ? currQuestion.success : "Файл загружен успешно"
+          currQuestion.success ? currQuestion.success[LANGUAGE] : this.questions.fileSuccess[LANGUAGE]
         );
         await this.dbConnector.updateAnswer(chatIdString, currIndexAnswer, documentData.file_name);
         const item = await this.dbConnector.getItem(chatIdString);
@@ -54,11 +55,11 @@ export default class BotLogic {
       } else {
         this.bot.telegram.sendMessage(
           chatIdString,
-          currQuestion.error ? currQuestion.error : "Файл не принят. Попробуйте еще раз!"
+          currQuestion.error ? currQuestion.error[LANGUAGE] : this.questions.typeError[LANGUAGE]
         );
       }
       if (currIndexAnswer === formQuestions.length) {
-        this.bot.telegram.sendMessage(chatId, this.questions.finalWords);
+        this.bot.telegram.sendMessage(chatId, this.questions.finalWords[LANGUAGE]);
         await this.dbConnector.increaseCounter(chatIdString, currIndexAnswer);
       }
       return;
@@ -67,21 +68,24 @@ export default class BotLogic {
     if (this.validator.hasEventBodyMessage(body)) {
       if (userInput === "/start" && currIndexAnswer === 0) {
         this.dbConnector.createForm(chatIdString);
-        this.bot.telegram.sendMessage(chatId, `${this.questions.welcomeWords}\n\n${currQuestion.text}`);
+        this.bot.telegram.sendMessage(
+          chatId,
+          `${this.questions.welcomeWords[LANGUAGE]}\n\n${currQuestion.text[LANGUAGE]}`
+        );
       } else {
         if (this.validator.validate(currQuestion.type, userInput)) {
           this.dbConnector.updateAnswer(chatIdString, currIndexAnswer, userInput);
           currIndexAnswer++;
-          this.bot.telegram.sendMessage(chatId, this.questions.questions[currIndexAnswer].text);
+          this.bot.telegram.sendMessage(chatId, this.questions.questions[currIndexAnswer].text[LANGUAGE]);
         } else {
           this.bot.telegram.sendMessage(
             chatId,
-            `${currQuestion.error ? currQuestion.error : "Ошибка ввода! Повторите еще раз."}`
+            `${currQuestion.error ? currQuestion.error[LANGUAGE] : this.questions.commonError[LANGUAGE]}`
           );
         }
       }
       if (currIndexAnswer === formQuestions.length) {
-        this.bot.telegram.sendMessage(chatId, this.questions.finalWords);
+        this.bot.telegram.sendMessage(chatId, this.questions.finalWords[LANGUAGE]);
         await this.dbConnector.increaseCounter(chatIdString, ++currIndexAnswer);
       }
       return;
