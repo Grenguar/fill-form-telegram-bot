@@ -1,9 +1,9 @@
 import { Handler, Context, Callback } from "aws-lambda";
 import BotLogic from "./src/botLogic";
+import BotLogicStream from "./src/botLogicStream";
 
 const sendAnswer: Handler = async (event: any, context: Context, callback: Callback) => {
   const body = JSON.parse(event.body);
-  console.log(body);
   const botLogic = new BotLogic();
   await botLogic.activate(body);
 
@@ -13,4 +13,14 @@ const sendAnswer: Handler = async (event: any, context: Context, callback: Callb
   });
 };
 
-export { sendAnswer };
+const streamBotAnswer: Handler = async (event: any, context: Context, callback: Callback) => {
+  const body = JSON.parse(event.body);
+  const botLogicStream = new BotLogicStream()
+  await botLogicStream.activate(body)
+  callback(null, {
+    statusCode: 200,
+    body: "ok"
+  });
+}
+
+export { sendAnswer, streamBotAnswer };

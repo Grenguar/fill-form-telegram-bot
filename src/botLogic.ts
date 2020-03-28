@@ -8,7 +8,6 @@ import FormQuestion from "./model/formQuestion";
 import FormAnswer from "./model/formAnswer";
 
 const LANGUAGE = process.env.LANG ? process.env.LANG : "en";
-console.log(LANGUAGE);
 
 export default class BotLogic {
   bot: Telegraf<ContextMessageUpdate>;
