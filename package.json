@@ -16,7 +16,7 @@
   "dependencies": {
     "aws-lambda": "^0.1.2",
     "aws-sdk": "^2.566.0",
-    "axios": "^0.19.0",
+    "axios": "^0.21.1",
     "nodemailer": "^6.3.1",
     "telegraf": "^3.33.3"
   }
