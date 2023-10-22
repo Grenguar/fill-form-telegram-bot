@@ -38,6 +38,7 @@ export default class DynamoDbConnector {
       }
     });
   }
+  
   public async getItem(id: string): Promise<FormAnswer> {
     const params = {
       TableName: this.tableName,

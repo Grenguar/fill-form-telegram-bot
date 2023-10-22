@@ -11,10 +11,12 @@ provider:
   environment:
     TO: ${file(./env.json):TO, env:TO}
     FROM: ${file(./env.json):FROM, env:FROM},
-    LANG: ${file(./env.json):LANG, env:LANG}
     BOT_TOKEN: ${file(./env.json):BOT_TOKEN, env:BOT_TOKEN}
-    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
-    BUCKET: ${file(./env.json):BUCKET_NAME, env:BUCKET_NAME}
+    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}-questions
+    BUCKET: ${file(./env.json):BUCKET, env:BUCKET}
+    TRELLO_KEY: ${file(./env.json):TRELLO_KEY, env:TRELLO_KEY}
+    TRELLO_TOKEN: ${file(./env.json):TRELLO_TOKEN, env:TRELLO_TOKEN}
+    TRELLO_LIST_ID: ${file(./env.json):TRELLO_LIST_ID, env:TRELLO_LIST_ID}
   iamRoleStatements:
     - Effect: "Allow"
       Action:
@@ -45,6 +47,12 @@ functions:
     events:
       - http:
           path: send
+          method: post
+  stream:
+    handler: handler.streamBotAnswer
+    events:
+      - http:
+          path: stream
           method: post
 
 resources:
